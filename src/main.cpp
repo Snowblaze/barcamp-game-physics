@@ -2,6 +2,7 @@
 //
 
 #include "main.hpp"
+#include "Demo.hpp"
 #include <SDL.h>
 
 #if defined(_WIN32)
@@ -13,7 +14,16 @@ int wmain(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-	SDL_Log("Hello CMake.");
+	Demo demo;
+
+	bool success = demo.init();
+
+	if (success)
+	{
+		demo.run();
+	}
+
+	demo.shutdown();
 
 	return 0;
 }
