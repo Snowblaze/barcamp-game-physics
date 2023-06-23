@@ -9,3 +9,7 @@ add_subdirectory(SDL)
 target_link_libraries(external INTERFACE SDL2-static)
 
 add_subdirectory(nicemath)
+target_link_libraries(external INTERFACE nicemath)
+
+add_subdirectory(physics-engine)
+target_link_libraries(external INTERFACE PhysicsEngine)

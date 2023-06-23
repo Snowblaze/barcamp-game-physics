@@ -4,6 +4,7 @@
 #define DEMO_HPP
 
 #include <SDL.h>
+#include "particle.hpp"
 
 class Demo
 {
@@ -30,6 +31,8 @@ private:
     Uint32 ticksCount;
 
     bool running;
+
+    Particle* mCharacter;
 };
 
 #endif

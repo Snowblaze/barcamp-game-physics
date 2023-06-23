@@ -28,6 +28,13 @@ bool Demo::init()
         return false;
     }
 
+    mCharacter = new Particle();
+
+    mCharacter->setPosition((1024.0f - 100.0f) / 2.0f, (728.0f - 100.0f) / 2.0f);
+    mCharacter->setMass(1.0f);
+    mCharacter->setDamping(0.99f);
+    mCharacter->setAcceleration(0.0f, -9.81f);
+
     return true;
 }
 
@@ -84,11 +91,31 @@ void Demo::update()
     }
 
     ticksCount = SDL_GetTicks();
+
+    if (deltaTime > 0.05f)
+    {
+        deltaTime = 0.05f;
+    }
+
+    mCharacter->integrate(deltaTime);
 }
 
 void Demo::render()
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
     SDL_RenderClear(renderer);
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    nm::float2 currentPosition = mCharacter->getPosition();
+
+    SDL_Rect character = {
+        static_cast<int>(1024.0f - currentPosition.x()),
+        static_cast<int>(728.0f - currentPosition.y()),
+        100,
+        100
+    };
+
+    SDL_RenderFillRect(renderer, &character);
+
     SDL_RenderPresent(renderer);
 }
