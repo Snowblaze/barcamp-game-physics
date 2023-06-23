@@ -1,6 +1,7 @@
 #include "Demo.hpp"
+#include "groundcontact.hpp"
 
-Demo::Demo() : window(nullptr), renderer(nullptr), ticksCount(0), running() {}
+Demo::Demo() : window(nullptr), renderer(nullptr), ticksCount(0), running(), maxContacts(10) {}
 
 bool Demo::init()
 {
@@ -28,12 +29,44 @@ bool Demo::init()
         return false;
     }
 
-    mCharacter = new Particle();
+    resolver = new ContactResolver(5);
 
-    mCharacter->setPosition((1024.0f - 100.0f) / 2.0f, (728.0f - 100.0f) / 2.0f);
-    mCharacter->setMass(1.0f);
-    mCharacter->setDamping(0.99f);
-    mCharacter->setAcceleration(0.0f, -9.81f);
+
+    Particle* particle = new Particle();
+
+    particle->setPosition(1024.0f / 4.0f - 50.0f, 728.0f / 2.0f - 50.0f);
+    particle->setMass(1.0f);
+    particle->setDamping(0.99f);
+    particle->setAcceleration(0.0f, -9.81f);
+
+    particles.push_back(particle);
+
+
+    particle = new Particle();
+
+    particle->setPosition(1024.0f / 4.0f * 2.0f - 50.0f, 728.0f / 2.0f - 50.0f);
+    particle->setMass(1.0f);
+    particle->setDamping(0.99f);
+    particle->setAcceleration(0.0f, 2 * -9.81f);
+
+    particles.push_back(particle);
+
+
+    particle = new Particle();
+
+    particle->setPosition(1024.0f / 4.0f * 3.0f - 50.0f, 728.0f / 2.0f - 50.0f);
+    particle->setMass(1.0f);
+    particle->setDamping(0.99f);
+    particle->setAcceleration(0.0f, 9.81f);
+
+    particles.push_back(particle);
+
+
+    GroundContact* groundContactGenerator = new GroundContact();
+    groundContactGenerator->init(particles);
+    generators.push_back(groundContactGenerator);
+
+    contacts = new Contact[maxContacts];
 
     return true;
 }
@@ -97,7 +130,18 @@ void Demo::update()
         deltaTime = 0.05f;
     }
 
-    mCharacter->integrate(deltaTime);
+    for (auto particle : particles)
+    {
+        particle->integrate(deltaTime);
+    }
+
+    unsigned usedContacts = generateContacts();
+
+    if (usedContacts)
+    {
+        resolver->setIterations(usedContacts * 2);
+        resolver->resolveContacts(contacts, usedContacts, deltaTime);
+    }
 }
 
 void Demo::render()
@@ -105,17 +149,37 @@ void Demo::render()
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
     SDL_RenderClear(renderer);
 
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    nm::float2 currentPosition = mCharacter->getPosition();
+    for (auto particle : particles)
+    {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        nm::float2 currentPosition = particle->getPosition();
 
-    SDL_Rect character = {
-        static_cast<int>(1024.0f - currentPosition.x()),
-        static_cast<int>(728.0f - currentPosition.y()),
-        100,
-        100
-    };
-
-    SDL_RenderFillRect(renderer, &character);
+        SDL_Rect particleRect = {
+            static_cast<int>(1024.0f - (currentPosition.x() + 50.0f)),
+            static_cast<int>(728.0f - (currentPosition.y() + 50.0f)),
+            100,
+            100
+        };
+        
+        SDL_RenderFillRect(renderer, &particleRect);
+    }
 
     SDL_RenderPresent(renderer);
+}
+
+unsigned Demo::generateContacts()
+{
+    unsigned limit = maxContacts;
+    Contact* nextContact = contacts;
+
+    for (auto generator : generators)
+    {
+        unsigned used = generator->addContact(nextContact, limit);
+        limit -= used;
+        nextContact += used;
+
+        if (limit <= 0) break;
+    }
+
+    return maxContacts - limit;
 }

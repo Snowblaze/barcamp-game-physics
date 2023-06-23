@@ -47,6 +47,11 @@ public:
         inverseMass = 1.0f / value;
     }
 
+    float getInverseMass() const
+    {
+        return inverseMass;
+    }
+
     void setInverseMass(const float value)
     {
         inverseMass = value;

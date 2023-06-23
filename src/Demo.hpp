@@ -3,8 +3,11 @@
 #ifndef DEMO_HPP
 #define DEMO_HPP
 
+#include <vector>
 #include <SDL.h>
 #include "particle.hpp"
+#include "contactresolver.hpp"
+#include "contactgenerator.hpp"
 
 class Demo
 {
@@ -24,6 +27,8 @@ private:
 
     void render();
 
+    unsigned generateContacts();
+
     SDL_Window* window;
 
     SDL_Renderer* renderer;
@@ -32,7 +37,15 @@ private:
 
     bool running;
 
-    Particle* mCharacter;
+    std::vector<Particle*> particles;
+
+    ContactResolver* resolver;
+
+    std::vector<ContactGenerator*> generators;
+
+    Contact* contacts;
+
+    unsigned maxContacts;
 };
 
 #endif
